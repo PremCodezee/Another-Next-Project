@@ -24,7 +24,7 @@ export default function VerifyEmail() {
   useEffect(() => {
     const urlToken = new URLSearchParams(window.location.search).get('token') || "";
     setToken(urlToken);
-  }, []);
+  }, [ window.location.search ]);
 
   useEffect(() => {
     if (token) {
