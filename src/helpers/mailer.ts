@@ -40,9 +40,7 @@ export const sendMail = async ({ email, emailType, userId }: any) => {
       subject:
         emailType === "VERIFY" ? "Verify your email" : "Reset your password",
       text: "Please verify your email by clicking the link below.",
-      html: `<p>Click <a href="${
-        process.env.DOMAIN
-      }/verifyemail?token=${hashedToken}">here</a> to ${
+      html: `<p>Click <a href="https://another-next-project-r855.vercel.app/verifyemail?token=${hashedToken}">here</a> to ${
         emailType === "VERIFY" ? "verify your email" : "reset your password"
       }
 or copy and paste the link below in your browser. <br> ${
