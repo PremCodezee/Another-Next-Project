@@ -1,6 +1,9 @@
 import nodemailer from "nodemailer";
 import User from "@/models/userModel";
 import bcryptjs from "bcryptjs";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const sendMail = async ({ email, emailType, userId }: any) => {
   try {
@@ -18,12 +21,16 @@ export const sendMail = async ({ email, emailType, userId }: any) => {
       });
     }
 
+
+    console.log('Mailtrap User:', process.env.MAILTRAP_USER);
+    console.log('Mailtrap Pass:', process.env.MAILTRAP_PASS);
+
     const transporter = nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
       port: 2525,
       auth: {
-        user: "2814db91930afb",
-        pass: "8824b80e7e160e",
+        user: process.env.MAILTRAP_USER,
+        pass: process.env.MAILTRAP_PASS,
       },
     });
 
