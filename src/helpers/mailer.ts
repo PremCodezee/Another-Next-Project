@@ -2,28 +2,26 @@ import nodemailer from "nodemailer";
 import User from "@/models/userModel";
 import bcryptjs from "bcryptjs";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
 export const sendMail = async ({ email, emailType, userId }: any) => {
   try {
-    const hashedToken = await bcryptjs.hash(userId.toString(), 10);
+    // Generate a random token instead of using hashed userId
+    const randomToken = crypto.randomBytes(32).toString("hex");
 
     if (emailType === "VERIFY") {
       await User.findByIdAndUpdate(userId, {
-        verifyToken: hashedToken,
+        verifyToken: randomToken,
         verifyTokenExpiry: Date.now() + 3600000,
       });
     } else if (emailType === "RESET") {
       await User.findByIdAndUpdate(userId, {
-        forgetPasswordToken: hashedToken,
+        forgetPasswordToken: randomToken,
         forgetPasswordTokenExpiry: Date.now() + 3600000,
       });
     }
-
-
-    console.log('Mailtrap User:', process.env.MAILTRAP_USER);
-    console.log('Mailtrap Pass:', process.env.MAILTRAP_PASS);
 
     const transporter = nodemailer.createTransport({
       host: "sandbox.smtp.mailtrap.io",
@@ -34,27 +32,24 @@ export const sendMail = async ({ email, emailType, userId }: any) => {
       },
     });
 
+    const verificationLink = `${process.env.DOMAIN}/verifyemail?token=${randomToken}`;
+
     const mailOptions = {
-      from: "youremail@gmail.com",
+      from: process.env.EMAIL_FROM || "noreply@yourdomain.com",
       to: email,
       subject:
         emailType === "VERIFY" ? "Verify your email" : "Reset your password",
-      text: "Please verify your email by clicking the link below.",
-      html: `<p>Click <a href="${
-        process.env.DOMAIN
-      }/verifyemail?token=${hashedToken}">here</a> to ${
-        emailType === "VERIFY" ? "verify your email" : "reset your password"
-      }
-or copy and paste the link below in your browser. <br> ${
-        process.env.DOMAIN
-      }/verifyemail?token=${hashedToken}
-</p>`,
+      html: `
+        <p>Please ${emailType === "VERIFY" ? "verify your email" : "reset your password"} by clicking the link below:</p>
+        <p><a href="${verificationLink}">${verificationLink}</a></p>
+        <p>If you didn't request this, please ignore this email.</p>
+      `,
     };
 
     const mailResponse = await transporter.sendMail(mailOptions);
-
     return mailResponse;
   } catch (error: any) {
+    console.error("Error in sendMail:", error);
     throw new Error(error.message);
   }
 };
