@@ -1,17 +1,14 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from "@/dbConfig/dbConfig";
-import { NextRequest, NextResponse } from "next/server";
 import User from "@/models/userModel";
 
 connectDB();
 
 export async function POST(request: NextRequest) {
   try {
-    const reqBody = await request.json();
-    const { token } = reqBody;
+    const { token } = await request.json();
     
-    if (!token) {
-      return NextResponse.json({ status: 400, message: "Token is required" });
-    }
+    console.log("Received token:", token);
 
     const user = await User.findOne({
       verifyToken: token,
@@ -19,24 +16,19 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ status: 400, message: "Invalid or expired token" });
+      console.log("No user found with the given token");
+      return NextResponse.json({ message: "Invalid or expired token" }, { status: 400 });
     }
 
     user.isVerified = true;
     user.verifyToken = undefined;
     user.verifyTokenExpiry = undefined;
-
     await user.save();
 
-    return NextResponse.json({
-      status: 200,
-      message: "Email verified successfully",
-    });
+    console.log("User verified successfully");
+    return NextResponse.json({ message: "Email verified successfully" }, { status: 200 });
   } catch (error: any) {
-    console.error("Verification error:", error);
-    return NextResponse.json({
-      status: 500,
-      message: "An error occurred during verification",
-    });
+    console.error("Error in email verification:", error);
+    return NextResponse.json({ message: "Server error during verification" }, { status: 500 });
   }
 }
