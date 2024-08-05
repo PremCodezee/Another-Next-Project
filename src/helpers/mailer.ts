@@ -34,6 +34,8 @@ export const sendMail = async ({ email, emailType, userId }: any) => {
       },
     });
 
+    
+
     const mailOptions = {
       from: "youremail@gmail.com",
       to: email,
